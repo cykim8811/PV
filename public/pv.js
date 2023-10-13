@@ -26,28 +26,18 @@ function createElement(type, config, ...children) {
     if (children.length === 1 && Array.isArray(children[0])) {
         children = children[0];
     }
+    
 
-    const key = config.key;
+    const key = (config.key !== null && config.key !== undefined)? ('' + config.key) : null;
     const ref = config.ref;
 
-
-    if (_context.length > 0) {
-        const parent = _context[_context.length - 1];
-        if (key !== null) {
-            for (const child of parent.children) {
-                if (child.key === key) {
-                    return child;
-                }
-            }
-        }
-    }
 
     const props = {...config, children};
     const elem = {
         type,
         props,
-        key: config.key? '' + config.key : null,
-        ref: config.ref || null,
+        key,
+        ref,
         state: null,
         _stateIndex: 0,
         children: []
@@ -55,12 +45,28 @@ function createElement(type, config, ...children) {
 
     if (_context.length > 0) {
         const parent = _context[_context.length - 1];
-        parent.children.push(elem);
+        // Check if parent has child with key
+        if (key !== null) {
+            for (const childIndex in parent.children) {
+                const child = parent.children[childIndex];
+                console.log("Child key: ", child.key, ", key: ", key)
+                if (child.key == key) {
+                    child.props = props;
+                    child.children = children;
+                    // TODO: Call destructor on old child recursively
+                    return child;
+                }
+            }
+        }
     }
 
+    if (_context.length > 0) {
+        const parent = _context[_context.length - 1];
+        parent.children.push(elem);
+    }
     return elem;
 }
-
+// TODO: Remove nodes whose key is null on re-render
 function _render(node) {
     if (typeof node === 'string') {
         return document.createTextNode(node);
@@ -68,7 +74,6 @@ function _render(node) {
 
     const type = node.type;
     const props = node.props;
-
     if (typeof type === 'function') {
         _context.push(node);
         node._stateIndex = 0;
@@ -102,9 +107,34 @@ function _render(node) {
     }
     
 }
+// For debugging
+(function() {
+    if ( typeof Object.id != "undefined" ) return;
+
+    var id = 100000;
+
+    Object.id = function(o) {
+        if ( typeof o.__uniqueid != "undefined" ) {
+            return o.__uniqueid;
+        }
+
+        Object.defineProperty(o, "__uniqueid", {
+            value: ++id,
+            enumerable: false,
+            // This could go either way, depending on your 
+            // interpretation of what an "id" is
+            writable: false
+        });
+
+        return o.__uniqueid;
+    };
+})();
 
 function useState(initialValue) {
     const context = _context[_context.length - 1];
+    // console.log("[useState] useState called with unique context ID: ", Object.id(context));
+    // console.log("[useState] State: ", context.state)
+    // console.log("[useState] State index: ", context._stateIndex)
     if (!context.state) {
         context.state = [];
     }
@@ -114,10 +144,12 @@ function useState(initialValue) {
     }
     const setState = (newValue) => {
         context.state[stateIndex] = newValue;
+        console.log(context);
         context.ref.replaceWith(_render(context)); // Testing
-        console.log(context.ref);
+        console.log("[setState] setState called with unique context ID: ", Object.id(context), ", stateIndex: ", stateIndex, ", newValue: ", newValue);
     }
     context._stateIndex++;
+    console.log("[useState] Returning state", context.state[stateIndex])
     return [context.state[stateIndex], setState];
 }
 

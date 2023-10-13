@@ -4,14 +4,20 @@ const MainButton = require('MainButton').MainButton;
 // Define the MainCounter class
 
 function MainCounter() {
+    console.log('MainCounter called with context', Object.id(_context[_context.length - 1]));
+    console.log('State: ', _context[_context.length - 1].state);
     const [count, setCount] = useState(0);
+
+    console.log("Got count: ", count)
     
     const increment = () => {
         setCount(count + 1);
     };
-    
-    return createElement('div', null, 
-        createElement(MainDisplay, {count: count}),
-        createElement(MainButton, {onClick: increment}),
-    );
+
+    const displays = [];
+    for (let i = 0; i < count; i++) {
+        displays.push(createElement(MainDisplay, {count: count, key: i}));
+    }
+    displays.push(createElement(MainButton, {onClick: increment, key: 'button'}));
+    return createElement('div', null, displays);
 }
