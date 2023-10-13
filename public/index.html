@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Python Visualizer</title>
+    </head>
+    <body>
+        <div id="main"></div>
+        <script src="pv.js"></script>
+        <script src="templates/MainCounter.js"></script>
+        <script>
+            const element = createElement(MainCounter, {count: 0})
+            render(element, document.getElementById('main'));
+        </script>
+    </body>
+</html>
