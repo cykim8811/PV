@@ -40,7 +40,8 @@ function createElement(type, config, ...children) {
         ref,
         state: null,
         _stateIndex: 0,
-        children: []
+        children: [],
+        _remaining: true
     };
 
     if (_context.length > 0) {
@@ -54,6 +55,7 @@ function createElement(type, config, ...children) {
                     child.props = props;
                     child.children = children;
                     // TODO: Call destructor on old child recursively
+                    child._remaining = true;
                     return child;
                 }
             }
@@ -77,8 +79,12 @@ function _render(node) {
     if (typeof type === 'function') {
         _context.push(node);
         node._stateIndex = 0;
+        for (const child of node.children) {
+            child._remaining = false;
+        }
         const element = type(props);
         const rendered = _render(element);
+        node.children = node.children.filter(child => child._remaining);
         _context.pop();
         node.ref = element.ref;
         return rendered;

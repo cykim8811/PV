@@ -13,11 +13,15 @@ function MainCounter() {
     const increment = () => {
         setCount(count + 1);
     };
+    const decrement = () => {
+        setCount(count - 1);
+    };
 
     const displays = [];
     for (let i = 0; i < count; i++) {
         displays.push(createElement(MainDisplay, {count: count, key: i}));
     }
-    displays.push(createElement(MainButton, {onClick: increment, key: 'button'}));
+    displays.push(createElement(MainButton, {onClick: increment, key: 'button1'}));
+    displays.push(createElement(MainButton, {onClick: decrement, key: 'button2'}));
     return createElement('div', null, displays);
 }
